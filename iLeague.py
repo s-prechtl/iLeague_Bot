@@ -227,4 +227,5 @@ if __name__ == '__main__':
     client.load()
     with open("API.key", "r") as f:
         client.initAPI(f.read())
-    client.run("ODQzNDQ4NDg3MzgyNzQ1MDk4.YKEAnQ.qyeogazdj2w4Tt7hEnBZmfcN0Xw")
+    with open("Discord.key", "r") as f:
+        client.run(f.read())
