@@ -1,4 +1,5 @@
 import json
+import time
 
 import discord, pickle
 import requests
@@ -46,18 +47,11 @@ class MyClient(discord.Client):
             if message.content == (self.pref + "prefix"):
                 await message.channel.send(
                     "Your current prefix is: " + self.pref + ". To change it use " + self.pref + "prefix [new Prefix]")
-
             elif self.getContentFromMessageWithPrefixCommand(message, ["prefix"]):
-                print("Prefix request sent in Channel " + str(message.channel.name))
-                try:
-                    self.pref = message.content.split(" ")[1]
-                    await message.channel.send("Prefix successfully changed to " + self.pref)
-                    pickle.dump(self.pref, open("prefix.data", "wb"))
-                except:
-                    await message.channel.send(
-                        "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
+                print("Prefix change request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
+                self.changePrefix(message)
 
-                    # HUBA
+                # HUBA
             if self.getContentFromMessageWithPrefixCommand(message, ["hubaa"]):
                 await message.channel.send(
                     "Julian Huber (16) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
@@ -65,102 +59,128 @@ class MyClient(discord.Client):
 
                 # LEVEL
             elif self.getContentFromMessageWithPrefixCommand(message, ["level", "Level", "lvl"]):
-                print("Summonerlevel request sent in Channel " + str(message.channel.name))
-                sumname = ""
-                try:
-                    sumname = self.getSummonerNameFromMessage(message)
-                except:
-                    await message.channel.send(err)
-                if sumname != "":
-                    response = self.api.summoner.by_name(self.region, sumname)
-                    level = response["summonerLevel"]
-                    await message.channel.send("Der Spieler " + sumname + " hat das Level " + str(level) + ".")
+                print("Summoner level request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
+                self.requestLevel(message)
 
-                    # RANK
+                # RANK
             elif self.getContentFromMessageWithPrefixCommand(message, ["rank", "Rank", "RANK"]):
-                sumname = ""
-                try:
-                    sumname = self.getSummonerNameFromMessage(message)
-                except:
-                    await message.channel.send("Something went wrong.\n"
-                                               "Usage: " + self.pref + "rank [Summonername]")
-
-                if sumname != "":
-                    print("Summonerrank request sent in Channel " + str(message.channel.name))
-                    response = self.api.league.by_summoner(self.region,
-                                                           self.api.summoner.by_name(self.region, sumname)["id"])
-                    for i in response:
-                        if i["queueType"] == "RANKED_SOLO_5x5":
-                            response = i
-                    rank = str(response['tier']) + " " + str(response['rank'])
-                    wr = str(truncate((response["wins"] / (response["wins"] + response["losses"]) * 100), 2)) + "%"
-                    await message.channel.send(sumname + ": " + str(rank) + " | WR: " + str(wr))
+                print("Summoner rank request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
+                self.requestRank(message)
 
                 # HIGHEST MASTERY
             elif self.getContentFromMessageWithPrefixCommand(message,
                                                              ["highestmastery", "highestMastery", "HM", "hm", "Hm",
                                                               "HighestMastery"]):
-                sumname = ""
-                err = "Something went wrong.\nUsage: " + self.pref + "hm [count] [Summonername]"
-                firstIsInt = intTryParse(message.content.split(" ")[1])[1]
-
-                if len(message.content.split(" ")) > 2 and firstIsInt:  # If number is given
-                    try:
-                        sumname = self.getSummonerNameFromMessage(message, 2)
-                    except Exception as e:
-                        await message.channel.send(err)
-                        print("Exception in Mastery " + str(e))
-                    if sumname != "":
-                        try:
-                            listlen = int(message.content.split(" ")[1])
-                            output = self.getChampionMasteryList(sumname, listlen)
-                            for i in output:
-                                await message.channel.send(i)
-                        except Exception as e:
-                            await message.channel.send(err)
-                            print("Exception in Mastery " + str(e))
-                elif not firstIsInt:  # no number given
-                    try:
-                        sumname = self.getSummonerNameFromMessage(message, 1)
-                    except Exception as e:
-                        await message.channel.send(err)
-                        print("Exception in Mastery " + str(e))
-                    if sumname != "":
-                        try:
-                            listlen = 10
-                            output = self.getChampionMasteryList(sumname, listlen)
-                            for i in output:
-                                await message.channel.send(i)
-                        except Exception as e:
-                            await message.channel.send(err)
+                print("Summoner highest mastery request sent in Channel " + str(message.channel.name) + " at " + str(
+                    time.time()))
+                self.requestHighestMastery(message)
 
             elif self.getContentFromMessageWithPrefixCommand(message, ["cm", "CM", "Championmastery",
                                                                        "championmastery"]):  # get Mastery from Champion
-                err = "Something went wrong.\nUsage: " + self.pref + "cm [Championname] [Summonername]"
-                sumname = ""
+                print("Summoner champion mastery request sent in Channel " + str(message.channel.name) + " at " + str(
+                    time.time()))
+                self.requestChampionMastery(message)
+
+    async def changePrefix(self, message: discord.Message):
+        try:
+            self.pref = message.content.split(" ")[1]
+            await message.channel.send("Prefix successfully changed to " + self.pref)
+            pickle.dump(self.pref, open("prefix.data", "wb"))
+        except:
+            await message.channel.send(
+                "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
+
+    async def requestLevel(self, message: discord.Message):
+        sumname = ""
+        try:
+            sumname = self.getSummonerNameFromMessage(message)
+        except:
+            await message.channel.send(err)
+        if sumname != "":
+            response = self.api.summoner.by_name(self.region, sumname)
+            level = response["summonerLevel"]
+            await message.channel.send("Der Spieler " + sumname + " hat das Level " + str(level) + ".")
+
+    async def requestRank(self, message: discord.Message):
+        sumname = ""
+        try:
+            sumname = self.getSummonerNameFromMessage(message)
+        except:
+            await message.channel.send("Something went wrong.\n"
+                                       "Usage: " + self.pref + "rank [Summonername]")
+
+        if sumname != "":
+            print("Summonerrank request sent in Channel " + str(message.channel.name))
+            response = self.api.league.by_summoner(self.region,
+                                                   self.api.summoner.by_name(self.region, sumname)["id"])
+            for i in response:
+                if i["queueType"] == "RANKED_SOLO_5x5":
+                    response = i
+            rank = str(response['tier']) + " " + str(response['rank'])
+            wr = str(truncate((response["wins"] / (response["wins"] + response["losses"]) * 100), 2)) + "%"
+            await message.channel.send(sumname + ": " + str(rank) + " | WR: " + str(wr))
+
+    async def requestHighestMastery(self, message: discord.Message):
+        sumname = ""
+        err = "Something went wrong.\nUsage: " + self.pref + "hm [count] [Summonername]"
+        firstIsInt = intTryParse(message.content.split(" ")[1])[1]
+
+        if len(message.content.split(" ")) > 2 and firstIsInt:  # If number is given
+            try:
+                sumname = self.getSummonerNameFromMessage(message, 2)
+            except Exception as e:
+                await message.channel.send(err)
+                print("Exception in Mastery " + str(e))
+            if sumname != "":
                 try:
-                    sumname = self.getSummonerNameFromMessage(message, 2)
+                    listlen = int(message.content.split(" ")[1])
+                    output = self.getChampionMasteryList(sumname, listlen)
+                    for i in output:
+                        await message.channel.send(i)
+                except Exception as e:
+                    await message.channel.send(err)
+                    print("Exception in Mastery " + str(e))
+        elif not firstIsInt:  # no number given
+            try:
+                sumname = self.getSummonerNameFromMessage(message, 1)
+            except Exception as e:
+                await message.channel.send(err)
+                print("Exception in Mastery " + str(e))
+            if sumname != "":
+                try:
+                    listlen = 10
+                    output = self.getChampionMasteryList(sumname, listlen)
+                    for i in output:
+                        await message.channel.send(i)
                 except Exception as e:
                     await message.channel.send(err)
 
-                if sumname != "":
-                    response = self.api.champion_mastery.by_summoner(self.region,
-                                                                     self.api.summoner.by_name(self.region,
-                                                                                               sumname)["id"])
+    async def requestChampionMastery(self, message: discord.Message):
+        err = "Something went wrong.\nUsage: " + self.pref + "cm [Championname] [Summonername]"
+        sumname = ""
+        try:
+            sumname = self.getSummonerNameFromMessage(message, 2)
+        except Exception as e:
+            await message.channel.send(err)
 
-                    championsJSON = self.getChampionsJSON()
-                    for i in response:
-                        champname = championIdToName(i["championId"], championsJSON)
-                        if champname == message.content.split(" ")[1]:
-                            mpoints = i["championPoints"]
-                            mastery = i["championLevel"]
-                            out = "**" + sumname + "** --> **" + champname + "**" + " Points: " + str(
-                                mpoints) + " Level: " + str(
-                                mastery) + "\n"
+        if sumname != "":
+            response = self.api.champion_mastery.by_summoner(self.region,
+                                                             self.api.summoner.by_name(self.region,
+                                                                                       sumname)["id"])
 
-                            await message.channel.send(out)
-                            return
-                    await message.channel.send("No matching champion was found.")
+            championsJSON = self.getChampionsJSON()
+            for i in response:
+                champname = championIdToName(i["championId"], championsJSON)
+                if champname == message.content.split(" ")[1]:
+                    mpoints = i["championPoints"]
+                    mastery = i["championLevel"]
+                    out = "**" + sumname + "** --> **" + champname + "**" + " Points: " + str(
+                        mpoints) + " Level: " + str(
+                        mastery) + "\n"
+
+                    await message.channel.send(out)
+                    return
+            await message.channel.send("No matching champion was found.")
 
     def getSummonerNameFromMessage(self, message, argumentstart=1):
         ret = ""
