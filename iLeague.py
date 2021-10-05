@@ -1,5 +1,6 @@
 import datetime
 import json
+import threading
 
 import discord, pickle
 import requests
@@ -169,6 +170,12 @@ class MyClient(discord.Client):
             await message.channel.send(err)
 
         if sumname != "":
+            try:
+                self.api.summoner.by_name(self.region, sumname)["id"]
+            except requests.exceptions.HTTPError as e:
+                await message.channel.send("No matching player found with name " + sumname)
+                return
+
             response = self.api.champion_mastery.by_summoner(self.region,
                                                              self.api.summoner.by_name(self.region,
                                                                                        sumname)["id"])
@@ -226,7 +233,7 @@ class MyClient(discord.Client):
 
     def log(self, requestType, message : discord.Message):
         print(requestType + " request sent in Channel " + str(message.channel.name) + " at " + str(
-            datetime.datetime.now()))
+            datetime.datetime.now())[:-7])
 
     async def requestFreeChampRot(self, message : discord.Message):
         output = "Derzeitige F2P Champions:\n"
