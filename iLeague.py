@@ -140,7 +140,7 @@ class MyClient(discord.Client):
                 await message.channel.send(err)
                 print("Exception in Mastery " + str(e))
             if sumname != "":
-                if not self.checkSumname(sumname):
+                if not await self.checkSumname(sumname, message):
                     return
                 try:
                     listlen = int(message.content.split(" ")[1])
