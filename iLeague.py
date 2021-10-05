@@ -1,6 +1,5 @@
 import datetime
 import json
-import threading
 
 import discord, pickle
 import requests
@@ -86,7 +85,6 @@ class MyClient(discord.Client):
                 self.log("F2P rotation", message)
                 await self.requestFreeChampRot(message)
 
-
     async def changePrefix(self, message: discord.Message):
         try:
             self.pref = message.content.split(" ")[1]
@@ -103,6 +101,8 @@ class MyClient(discord.Client):
         except:
             await message.channel.send(err)
         if sumname != "":
+            if not await self.checkSumname(sumname, message):
+                return
             response = self.api.summoner.by_name(self.region, sumname)
             level = response["summonerLevel"]
             await message.channel.send("Der Spieler " + sumname + " hat das Level " + str(level) + ".")
@@ -116,6 +116,8 @@ class MyClient(discord.Client):
                                        "Usage: " + self.pref + "rank [Summonername]")
 
         if sumname != "":
+            if not await self.checkSumname(sumname, message):
+                return
             print("Summonerrank request sent in Channel " + str(message.channel.name))
             response = self.api.league.by_summoner(self.region,
                                                    self.api.summoner.by_name(self.region, sumname)["id"])
@@ -138,6 +140,8 @@ class MyClient(discord.Client):
                 await message.channel.send(err)
                 print("Exception in Mastery " + str(e))
             if sumname != "":
+                if not self.checkSumname(sumname):
+                    return
                 try:
                     listlen = int(message.content.split(" ")[1])
                     output = self.getChampionMasteryList(sumname, listlen)
@@ -170,10 +174,7 @@ class MyClient(discord.Client):
             await message.channel.send(err)
 
         if sumname != "":
-            try:
-                self.api.summoner.by_name(self.region, sumname)["id"]
-            except requests.exceptions.HTTPError as e:
-                await message.channel.send("No matching player found with name " + sumname)
+            if not await self.checkSumname(sumname, message):
                 return
 
             response = self.api.champion_mastery.by_summoner(self.region,
@@ -193,6 +194,40 @@ class MyClient(discord.Client):
                     await message.channel.send(out)
                     return
             await message.channel.send("No matching champion was found.")
+
+    async def requestFreeChampRot(self, message: discord.Message):
+        err = "Something went wrong.\nUsage: " + self.pref + "f2p [Summonername]"
+        sumname = ""
+        output = "Derzeitige F2P Champions"
+        rot = self.api.champion.rotations(self.region)["freeChampionIds"]
+        championsJSON = self.getChampionsJSON()
+        try:
+            sumname = self.getSummonerNameFromMessage(message, 1)
+        except Exception as e:
+            await message.channel.send(err)
+
+        if sumname != "":
+            if not await self.checkSumname(sumname, message):
+                return
+            output += " auf denen **" + sumname + "** noch keine Punkte hast: \n"
+            response = self.api.champion_mastery.by_summoner(self.region,
+                                                             self.api.summoner.by_name(self.region,
+                                                                                       sumname)["id"])
+            allIds = []
+            for i in response:
+                allIds.append(i["championId"])
+
+            for i in rot:
+                if not i in allIds:
+                    output += ("ㅤ\t- **" + championIdToName(i, championsJSON) + "**\n")
+        else:
+            output += ":\n"
+            for i in rot:
+                output += ("ㅤ\t- **" + championIdToName(i, championsJSON) + "**\n")
+
+        await message.channel.send(output)
+        if len(output.split("\n")) <= 2:
+            await message.channel.send("ㅤ\t- **Keine**")
 
     def getSummonerNameFromMessage(self, message, argumentstart=1):
         ret = ""
@@ -231,24 +266,23 @@ class MyClient(discord.Client):
             output[count] += out
         return output
 
-    def log(self, requestType, message : discord.Message):
+    def log(self, requestType, message: discord.Message):
         print(requestType + " request sent in Channel " + str(message.channel.name) + " at " + str(
             datetime.datetime.now())[:-7])
-
-    async def requestFreeChampRot(self, message : discord.Message):
-        output = "Derzeitige F2P Champions:\n"
-        rot = self.api.champion.rotations(self.region)["freeChampionIds"]
-        championsText = self.getChampionsJSON()
-        for i in rot:
-            output += ("ㅤ\t- **" + championIdToName(i, championsText) + "**\n")
-
-        await message.channel.send(output)
 
     def getEncryptedSummonerID(self, name):
         return self.api.summoner.by_name(self.region, name)["id"]
 
     def getChampionsJSON(self):
         return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
+
+    async def checkSumname(self, sumname, message: discord.Message):
+        try:
+            self.api.summoner.by_name(self.region, sumname)["id"]
+            return True
+        except requests.exceptions.HTTPError:
+            await message.channel.send("No matching player found with name **" + sumname + "**")
+            return False
 
 
 def truncate(f, n):
