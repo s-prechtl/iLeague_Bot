@@ -1,5 +1,5 @@
+import datetime
 import json
-import time
 
 import discord, pickle
 import requests
@@ -48,38 +48,43 @@ class MyClient(discord.Client):
                 await message.channel.send(
                     "Your current prefix is: " + self.pref + ". To change it use " + self.pref + "prefix [new Prefix]")
             elif self.getContentFromMessageWithPrefixCommand(message, ["prefix"]):
-                print("Prefix change request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
-                self.changePrefix(message)
+                self.log("Prefix change", message)
+                await self.changePrefix(message)
 
                 # HUBA
             if self.getContentFromMessageWithPrefixCommand(message, ["hubaa"]):
+                self.log("Huawa", message)
                 await message.channel.send(
                     "Julian Huber (16) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
                     "Orientierung hinter einer Beziehung mit einem weiblichen Kind versteckt.")
 
                 # LEVEL
             elif self.getContentFromMessageWithPrefixCommand(message, ["level", "Level", "lvl"]):
-                print("Summoner level request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
-                self.requestLevel(message)
+                self.log("Summoner level", message)
+                await self.requestLevel(message)
 
                 # RANK
             elif self.getContentFromMessageWithPrefixCommand(message, ["rank", "Rank", "RANK"]):
-                print("Summoner rank request sent in Channel " + str(message.channel.name) + " at " + str(time.time()))
-                self.requestRank(message)
+                self.log("Summoner level", message)
+                await self.requestRank(message)
 
                 # HIGHEST MASTERY
             elif self.getContentFromMessageWithPrefixCommand(message,
                                                              ["highestmastery", "highestMastery", "HM", "hm", "Hm",
                                                               "HighestMastery"]):
-                print("Summoner highest mastery request sent in Channel " + str(message.channel.name) + " at " + str(
-                    time.time()))
-                self.requestHighestMastery(message)
+                self.log("Highest mastery", message)
+                await self.requestHighestMastery(message)
 
             elif self.getContentFromMessageWithPrefixCommand(message, ["cm", "CM", "Championmastery",
                                                                        "championmastery"]):  # get Mastery from Champion
-                print("Summoner champion mastery request sent in Channel " + str(message.channel.name) + " at " + str(
-                    time.time()))
-                self.requestChampionMastery(message)
+                self.log("Summoner champion mastery", message)
+                await self.requestChampionMastery(message)
+
+            # FREE CHAMPS
+            elif self.getContentFromMessageWithPrefixCommand(message, ["f2p", "rotation", "F2P", "ROTATION"]):
+                self.log("F2P rotation", message)
+                await self.requestFreeChampRot(message)
+
 
     async def changePrefix(self, message: discord.Message):
         try:
@@ -218,6 +223,19 @@ class MyClient(discord.Client):
                 count += 1
             output[count] += out
         return output
+
+    def log(self, requestType, message : discord.Message):
+        print(requestType + " request sent in Channel " + str(message.channel.name) + " at " + str(
+            datetime.datetime.now()))
+
+    async def requestFreeChampRot(self, message : discord.Message):
+        output = "Derzeitige F2P Champions:\n"
+        rot = self.api.champion.rotations(self.region)["freeChampionIds"]
+        championsText = self.getChampionsJSON()
+        for i in rot:
+            output += ("ㅤ\t- **" + championIdToName(i, championsText) + "**\n")
+
+        await message.channel.send(output)
 
     def getEncryptedSummonerID(self, name):
         return self.api.summoner.by_name(self.region, name)["id"]
