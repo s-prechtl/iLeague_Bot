@@ -203,8 +203,8 @@ class MyClient(discord.Client):
         championsJSON = self.getChampionsJSON()
         try:
             sumname = self.getSummonerNameFromMessage(message, 1)
-        except Exception as e:
-            await message.channel.send(err)
+        except Exception:
+            pass
 
         if sumname != "":
             if not await self.checkSumname(sumname, message):
@@ -267,8 +267,11 @@ class MyClient(discord.Client):
         return output
 
     def log(self, requestType, message: discord.Message):
-        print(requestType + " request sent in Channel " + str(message.channel.name) + " at " + str(
-            datetime.datetime.now())[:-7])
+        logMSG =( requestType + " request sent in Channel " + str(message.channel.name) + "\n\t- at: " + str(
+            datetime.datetime.now())[:-7] + "\n\t- by: " + str(message.author) + "\n\t- content: '" + str(message.content) + "'\n")
+        print(logMSG)
+        with open("requests.log", "a") as f:
+            f.write(logMSG)
 
     def getEncryptedSummonerID(self, name):
         return self.api.summoner.by_name(self.region, name)["id"]
