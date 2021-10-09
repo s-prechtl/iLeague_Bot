@@ -1,9 +1,12 @@
 import datetime
 import json
 
-import discord, pickle
+import discord
+import pickle
 import requests
-from riotwatcher import LolWatcher, ApiError
+from riotwatcher import LolWatcher
+
+from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand
 
 
 def championIdToName(id, championsText):
@@ -18,12 +21,20 @@ class MyClient(discord.Client):
     api: LolWatcher
     region: str
     pref = "$"
+    commands = []
 
     def initAPI(self, APIKey, region="EUW1"):
         self.api = LolWatcher(APIKey)
         self.region = region
 
-    def load(self):  # Loads the prefix file if accesable
+    def initCommands(self):
+        self.commands = []
+        self.commands.append(ChampionMasteryCommand.ChampionMastery(self.api, self.pref, []))
+        self.commands.append(HighestMasteryCommand.HighestMastery(self.api, self.pref, []))
+        self.commands.append(SummonerLevelCommand.SummonerLevel(self.api, self.pref, []))
+        self.commands.append(PrefixCommand.Prefix(self.api, self.pref, []))
+
+    def load(self):  # Loads the prefix file if accessable
         try:
             self.pref = pickle.load(open("prefix.data", "rb"))
             print("Prefix loaded as: " + self.pref)
@@ -99,7 +110,7 @@ class MyClient(discord.Client):
         try:
             sumname = self.getSummonerNameFromMessage(message)
         except:
-            await message.channel.send(err)
+            pass
         if sumname != "":
             if not await self.checkSumname(sumname, message):
                 return
@@ -241,12 +252,6 @@ class MyClient(discord.Client):
             ret = inp[argumentstart]
         return ret
 
-    def getContentFromMessageWithPrefixCommand(self, message: discord.Message, command: list):
-        for i in command:
-            if message.content.startswith(self.pref + i):
-                return True
-        return False
-
     def getChampionMasteryList(self, sumname, listlen):
         output = ["Der Spieler " + sumname + " hat den höchsten Mastery auf diesen " + str(
             listlen) + " Champions\n"]
@@ -265,13 +270,6 @@ class MyClient(discord.Client):
                 count += 1
             output[count] += out
         return output
-
-    def log(self, requestType, message: discord.Message):
-        logMSG =( requestType + " request sent in Channel " + str(message.channel.name) + "\n\t- at: " + str(
-            datetime.datetime.now())[:-7] + "\n\t- by: " + str(message.author) + "\n\t- content: '" + str(message.content) + "'\n")
-        print(logMSG)
-        with open("requests.log", "a") as f:
-            f.write(logMSG)
 
     def getEncryptedSummonerID(self, name):
         return self.api.summoner.by_name(self.region, name)["id"]
