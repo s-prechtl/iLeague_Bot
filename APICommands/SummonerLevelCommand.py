@@ -10,6 +10,8 @@ class SummonerLevel(APICommands.Command.Command, ABC):
     keywords = ["level", "Level", "lvl"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords: list):
+        if additionalKeywords is None:
+            additionalKeywords = []
         super().__init__(pref, api, additionalKeywords)
 
     async def execute(self, message: discord.Message):

@@ -6,10 +6,10 @@ import riotwatcher
 import APICommands.Command
 
 
-class ChampionMastery(APICommands.Command.Command, ABC):
-    keywords = ["cm", "CM", "Championmastery", "championmastery"]
+class Free2Play(APICommands.Command.Command, ABC):
+    keywords = ["f2p", "rotation", "F2P", "ROTATION"]
 
-    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords: list):
+    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords=None):
         if additionalKeywords is None:
             additionalKeywords = []
         super().__init__(pref, api, additionalKeywords)

@@ -12,8 +12,8 @@ class Command:
     api: riotwatcher.LolWatcher
     commandName = ""
 
-    def __init__(self, pref, api: riotwatcher.LolWatcher, addkeywords: list):
-        for i in addkeywords:
+    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords: list):
+        for i in additionalKeywords:
             self.keywords.append(i)
         self.pref = pref
         self.api = api
@@ -37,7 +37,7 @@ class Command:
         return False
 
     def log(self, message: discord.Message):
-        logMSG = (self.commandName + " request sent in Channel " + str(message.channel.name) + "\n\t- at: " + str(
+        logMSG = (self.commandName + " request sent:\n\t-in: " + str(message.channel.name) + "\n\t- at: " + str(
             datetime.now())[:-7] + "\n\t- by: " + str(message.author) + "\n\t- content: '" + str(
             message.content) + "'\n")
         print(logMSG)

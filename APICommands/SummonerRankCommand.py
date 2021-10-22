@@ -6,10 +6,10 @@ import riotwatcher
 import APICommands.Command
 
 
-class ChampionMastery(APICommands.Command.Command, ABC):
-    keywords = ["cm", "CM", "Championmastery", "championmastery"]
+class SummonerRank(APICommands.Command.Command, ABC):
+    keywords = ["rank", "Rank", "RANK"]
 
-    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords: list):
+    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords=None):
         if additionalKeywords is None:
             additionalKeywords = []
         super().__init__(pref, api, additionalKeywords)

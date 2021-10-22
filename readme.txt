@@ -1,6 +1,6 @@
 For this bot following python packages are needed:
  - Discord
- - APIWatcher
+ - RIOTWatcher
  
  Installation command for terminal:
  
