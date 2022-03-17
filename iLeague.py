@@ -26,13 +26,14 @@ class MyClient(discord.Client):
     def initAPI(self, APIKey, region="EUW1"):
         self.api = LolWatcher(APIKey)
         self.region = region
+        self.initCommands()
 
     def initCommands(self):
         self.commands = []
-        self.commands.append(ChampionMasteryCommand.ChampionMastery(self.api, self.pref, []))
-        self.commands.append(HighestMasteryCommand.HighestMastery(self.api, self.pref, []))
-        self.commands.append(SummonerLevelCommand.SummonerLevel(self.api, self.pref, []))
-        self.commands.append(PrefixCommand.Prefix(self.api, self.pref, []))
+        self.commands.append(ChampionMasteryCommand.ChampionMastery(self.pref, self.api, self.region, []))
+        self.commands.append(HighestMasteryCommand.HighestMastery(self.pref, self.api, self.region, []))
+        self.commands.append(SummonerLevelCommand.SummonerLevel(self.pref, self.api, self.region, []))
+        self.commands.append(PrefixCommand.Prefix(self.pref, self.api, self.region, []))
 
     def load(self):  # Loads the prefix file if accessable
         try:
@@ -55,23 +56,23 @@ class MyClient(discord.Client):
                     message.channel.id == 843900656108437504 or message.channel.id == 673681791932170240):  # Only allows channels bot testing and leaguebot
                 await message.channel.send("Bitte #league-bot verwenden.")
                 return
-            if message.content == (self.pref + "prefix"):
-                await message.channel.send(
-                    "Your current prefix is: " + self.pref + ". To change it use " + self.pref + "prefix [new Prefix]")
-            elif self.getContentFromMessageWithPrefixCommand(message, ["prefix"]):
-                self.log("Prefix change", message)
-                await self.changePrefix(message)
 
-                # HUBA
+            for command in self.commands:
+                if command.isCalled(message):
+                    command.log(message)
+                    await command.execute(message)
+
+
+
+            # HUBA
             if self.getContentFromMessageWithPrefixCommand(message, ["hubaa"]):
                 self.log("Huawa", message)
                 await message.channel.send(
                     "Julian Huber (16) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
                     "Orientierung hinter einer Beziehung mit einem weiblichen Kind versteckt.")
 
-                # LEVEL
+            # LEVEL
             elif self.getContentFromMessageWithPrefixCommand(message, ["level", "Level", "lvl"]):
-                self.log("Summoner level", message)
                 await self.requestLevel(message)
 
                 # RANK
@@ -104,19 +105,6 @@ class MyClient(discord.Client):
         except:
             await message.channel.send(
                 "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
-
-    async def requestLevel(self, message: discord.Message):
-        sumname = ""
-        try:
-            sumname = self.getSummonerNameFromMessage(message)
-        except:
-            pass
-        if sumname != "":
-            if not await self.checkSumname(sumname, message):
-                return
-            response = self.api.summoner.by_name(self.region, sumname)
-            level = response["summonerLevel"]
-            await message.channel.send("Der Spieler " + sumname + " hat das Level " + str(level) + ".")
 
     async def requestRank(self, message: discord.Message):
         sumname = ""
@@ -240,17 +228,7 @@ class MyClient(discord.Client):
         if len(output.split("\n")) <= 2:
             await message.channel.send("ㅤ\t- **Keine**")
 
-    def getSummonerNameFromMessage(self, message, argumentstart=1):
-        ret = ""
-        inp = message.content.split(" ")
-        if len(inp) > argumentstart + 1:
-            for i in inp[argumentstart:]:
-                ret += " " + i
 
-            ret = ret[1:]
-        else:
-            ret = inp[argumentstart]
-        return ret
 
     def getChampionMasteryList(self, sumname, listlen):
         output = ["Der Spieler " + sumname + " hat den höchsten Mastery auf diesen " + str(
@@ -276,14 +254,6 @@ class MyClient(discord.Client):
 
     def getChampionsJSON(self):
         return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
-
-    async def checkSumname(self, sumname, message: discord.Message):
-        try:
-            self.api.summoner.by_name(self.region, sumname)["id"]
-            return True
-        except requests.exceptions.HTTPError:
-            await message.channel.send("No matching player found with name **" + sumname + "**")
-            return False
 
 
 def truncate(f, n):

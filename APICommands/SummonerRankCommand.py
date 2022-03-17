@@ -9,10 +9,10 @@ import APICommands.Command
 class SummonerRank(APICommands.Command.Command, ABC):
     keywords = ["rank", "Rank", "RANK"]
 
-    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords=None):
+    def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords=None):
         if additionalKeywords is None:
             additionalKeywords = []
-        super().__init__(pref, api, additionalKeywords)
+        super().__init__(pref, api, region, additionalKeywords)
 
     async def execute(self, message: discord.Message):
         pass

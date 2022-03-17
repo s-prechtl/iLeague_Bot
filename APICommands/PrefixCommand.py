@@ -10,10 +10,10 @@ import APICommands.Command
 class Prefix(APICommands.Command.Command, ABC):
     keywords = ["prefix"]
 
-    def __init__(self, pref, api: riotwatcher.LolWatcher, additionalKeywords=None):
+    def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords=None):
         if additionalKeywords is None:
             additionalKeywords = []
-        super().__init__(pref, api, additionalKeywords)
+        super().__init__(pref, api, region, additionalKeywords)
         self.commandName = "Prefix change"
 
     async def execute(self, message: discord.Message):
@@ -30,7 +30,8 @@ class Prefix(APICommands.Command.Command, ABC):
             "Your current prefix is: " + self.pref + ". To change it use " + self.pref + "prefix [new Prefix]")
 
     async def usage(self, message: discord.Message):
-        await message.channel.send("Wrong usage of prefix command! Use " + self.pref + "prefix [new Prefix (optional)]")
+        await message.channel.send("Wrong usage of" + self.commandName + "! Use " + self.pref + "prefix [new Prefix ("
+                                                                                                "optional)]")
 
     async def changePrefix(self, message: discord.Message):
         try:
