@@ -44,7 +44,7 @@ async def usage(self, message: discord.Message):
                                                                                                 "Summonername]")
 
 
-def getChampionMasteryList(self, sumname, listlen):
+def getChampionMasteryList(sumname, listlen):
     output = ["Der Spieler " + sumname + " hat den höchsten Mastery auf diesen " + str(
         listlen) + " Champions\n"]
     count = 0
