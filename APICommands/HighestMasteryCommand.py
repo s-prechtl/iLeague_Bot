@@ -17,15 +17,13 @@ class HighestMastery(APICommands.Command.Command, ABC):
 
     async def execute(self, message: discord.Message):
         sumname = ""
-        err = "Something went wrong.\nUsage: " + self.pref + "hm [count] [Summonername]"
         firstIsInt = intTryParse(message.content.split(" ")[1])[1]
 
         if len(message.content.split(" ")) > 2 and firstIsInt:  # If number is given
             try:
                 sumname = APICommands.Command.getSummonerNameFromMessage(message, 2)
-            except Exception as e:
-                await message.channel.send(err)
-                print("Exception in Mastery " + str(e))
+            except:
+                await self.usage(message)
             if sumname != "":
                 if not await self.checkSumname(sumname, message):
                     return
@@ -34,9 +32,8 @@ class HighestMastery(APICommands.Command.Command, ABC):
                     output = self.getChampionMasteryList(sumname, listlen)
                     for i in output:
                         await message.channel.send(i)
-                except Exception as e:
-                    await message.channel.send(err)
-                    print("Exception in Mastery " + str(e))
+                except:
+                    await self.usage(message)
         elif not firstIsInt:  # no number given
             try:
                 sumname = APICommands.Command.getSummonerNameFromMessage(message, 1)
@@ -49,11 +46,15 @@ class HighestMastery(APICommands.Command.Command, ABC):
                     output = self.getChampionMasteryList(sumname, listlen)
                     for i in output:
                         await message.channel.send(i)
-                except Exception as e:
-                    await message.channel.send(err)
+                except:
+                    await self.usage(message)
 
     async def info(self, message: discord.Message):
         pass
+
+    async def usage(self, message: discord.Message):
+        await message.channel.send("Wrong usage of" + self.commandName + "!\nUsage: " + self.pref + "hm [count] ["
+                                                                                                     "Summonername]")
 
     def getChampionMasteryList(self, sumname, listlen):
         output = ["Der Spieler " + sumname + " hat den höchsten Mastery auf diesen " + str(
@@ -73,6 +74,3 @@ class HighestMastery(APICommands.Command.Command, ABC):
                 count += 1
             output[count] += out
         return output
-
-    async def usage(self, message: discord.Message):
-        pass
