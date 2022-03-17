@@ -37,9 +37,8 @@ class HighestMastery(APICommands.Command.Command, ABC):
         elif not firstIsInt:  # no number given
             try:
                 sumname = APICommands.Command.getSummonerNameFromMessage(message, 1)
-            except Exception as e:
-                await message.channel.send(err)
-                print("Exception in Mastery " + str(e))
+            except:
+                await self.usage(message)
             if sumname != "":
                 try:
                     listlen = 10
