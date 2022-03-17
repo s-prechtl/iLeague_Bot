@@ -28,7 +28,7 @@ class HighestMastery(APICommands.Command.Command, ABC):
                 return
             listlen = int(message.content.split(" ")[1]) if firstIsInt else 10
             try:
-                output = self.getChampionMasteryList(sumname, listlen)
+                output = getChampionMasteryList(sumname, listlen)
                 for i in output:
                     await message.channel.send(i)
             except:
