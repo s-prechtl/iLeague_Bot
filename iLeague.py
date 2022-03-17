@@ -6,7 +6,7 @@ import pickle
 import requests
 from riotwatcher import LolWatcher
 
-from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand, SummonerRankCommand, F2PCommand
+from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand
 
 
 def championIdToName(id, championsText):
@@ -29,12 +29,10 @@ class MyClient(discord.Client):
 
     def initCommands(self):
         self.commands = []
-        self.commands.append(ChampionMasteryCommand.ChampionMastery(self.api, self.pref))
-        self.commands.append(HighestMasteryCommand.HighestMastery(self.api, self.pref))
-        self.commands.append(SummonerLevelCommand.SummonerLevel(self.api, self.pref))
-        self.commands.append(PrefixCommand.Prefix(self.api, self.pref))
-        self.commands.append(SummonerRankCommand.SummonerRank(self.api, self.pref))
-        self.commands.append(F2PCommand.Free2Play(self.api, self.pref))
+        self.commands.append(ChampionMasteryCommand.ChampionMastery(self.api, self.pref, []))
+        self.commands.append(HighestMasteryCommand.HighestMastery(self.api, self.pref, []))
+        self.commands.append(SummonerLevelCommand.SummonerLevel(self.api, self.pref, []))
+        self.commands.append(PrefixCommand.Prefix(self.api, self.pref, []))
 
     def load(self):  # Loads the prefix file if accessable
         try:
@@ -57,10 +55,12 @@ class MyClient(discord.Client):
                     message.channel.id == 843900656108437504 or message.channel.id == 673681791932170240):  # Only allows channels bot testing and leaguebot
                 await message.channel.send("Bitte #league-bot verwenden.")
                 return
-
-            for command in commands:
-                if command.isCalled(message):
-                    command.execute(message);
+            if message.content == (self.pref + "prefix"):
+                await message.channel.send(
+                    "Your current prefix is: " + self.pref + ". To change it use " + self.pref + "prefix [new Prefix]")
+            elif self.getContentFromMessageWithPrefixCommand(message, ["prefix"]):
+                self.log("Prefix change", message)
+                await self.changePrefix(message)
 
                 # HUBA
             if self.getContentFromMessageWithPrefixCommand(message, ["hubaa"]):
@@ -95,6 +95,15 @@ class MyClient(discord.Client):
             elif self.getContentFromMessageWithPrefixCommand(message, ["f2p", "rotation", "F2P", "ROTATION"]):
                 self.log("F2P rotation", message)
                 await self.requestFreeChampRot(message)
+
+    async def changePrefix(self, message: discord.Message):
+        try:
+            self.pref = message.content.split(" ")[1]
+            await message.channel.send("Prefix successfully changed to " + self.pref)
+            pickle.dump(self.pref, open("prefix.data", "wb"))
+        except:
+            await message.channel.send(
+                "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
 
     async def requestLevel(self, message: discord.Message):
         sumname = ""
