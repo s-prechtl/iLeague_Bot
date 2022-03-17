@@ -6,6 +6,19 @@ import requests
 import riotwatcher
 
 
+def getSummonerNameFromMessage(message: discord.Message, argumentstart=1):
+    ret = ""
+    inp = message.content.split(" ")
+    if len(inp) > argumentstart + 1:
+        for i in inp[argumentstart:]:
+            ret += " " + i
+
+        ret = ret[1:]
+    else:
+        ret = inp[argumentstart]
+    return ret
+
+
 class Command:
     __metaclass__ = ABCMeta
     keywords = []
@@ -46,18 +59,6 @@ class Command:
         print(logMSG)
         with open("requests.log", "a") as f:
             f.write(logMSG)
-
-    def getSummonerNameFromMessage(self, message: discord.Message, argumentstart=1):
-        ret = ""
-        inp = message.content.split(" ")
-        if len(inp) > argumentstart + 1:
-            for i in inp[argumentstart:]:
-                ret += " " + i
-
-            ret = ret[1:]
-        else:
-            ret = inp[argumentstart]
-        return ret
 
     async def checkSumname(self, sumname, message: discord.Message):
         try:

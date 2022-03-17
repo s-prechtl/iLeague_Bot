@@ -17,7 +17,7 @@ class SummonerLevel(APICommands.Command.Command, ABC):
     async def execute(self, message: discord.Message):
         sumname = ""
         try:
-            sumname = self.getSummonerNameFromMessage(message)
+            sumname = APICommands.Command.getSummonerNameFromMessage(message)
         except:
             await self.usage(message)
         if sumname != "":

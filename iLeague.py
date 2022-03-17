@@ -6,7 +6,7 @@ import pickle
 import requests
 from riotwatcher import LolWatcher
 
-from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand
+from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand, SummonerRankCommand
 
 
 def championIdToName(id, championsText):
@@ -34,6 +34,7 @@ class MyClient(discord.Client):
         self.commands.append(HighestMasteryCommand.HighestMastery(self.pref, self.api, self.region, []))
         self.commands.append(SummonerLevelCommand.SummonerLevel(self.pref, self.api, self.region, []))
         self.commands.append(PrefixCommand.Prefix(self.pref, self.api, self.region, []))
+        self.commands.append(SummonerRankCommand.SummonerRank(self.pref, self.api, self.region, []))
 
     def load(self):  # Loads the prefix file if accessable
         try:
@@ -65,17 +66,16 @@ class MyClient(discord.Client):
 
 
             # HUBA
-            if self.getContentFromMessageWithPrefixCommand(message, ["hubaa"]):
+            if message.content == self.pref + "huba":
                 self.log("Huawa", message)
                 await message.channel.send(
-                    "Julian Huber (16) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
+                    "Julian Huber (17) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
                     "Orientierung hinter einer Beziehung mit einem weiblichen Kind versteckt.")
 
-            # LEVEL
-            elif self.getContentFromMessageWithPrefixCommand(message, ["level", "Level", "lvl"]):
-                await self.requestLevel(message)
+            if True:
+                return
 
-                # RANK
+            # RANK
             elif self.getContentFromMessageWithPrefixCommand(message, ["rank", "Rank", "RANK"]):
                 self.log("Summoner level", message)
                 await self.requestRank(message)
@@ -105,27 +105,6 @@ class MyClient(discord.Client):
         except:
             await message.channel.send(
                 "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
-
-    async def requestRank(self, message: discord.Message):
-        sumname = ""
-        try:
-            sumname = self.getSummonerNameFromMessage(message)
-        except:
-            await message.channel.send("Something went wrong.\n"
-                                       "Usage: " + self.pref + "rank [Summonername]")
-
-        if sumname != "":
-            if not await self.checkSumname(sumname, message):
-                return
-            print("Summonerrank request sent in Channel " + str(message.channel.name))
-            response = self.api.league.by_summoner(self.region,
-                                                   self.api.summoner.by_name(self.region, sumname)["id"])
-            for i in response:
-                if i["queueType"] == "RANKED_SOLO_5x5":
-                    response = i
-            rank = str(response['tier']) + " " + str(response['rank'])
-            wr = str(truncate((response["wins"] / (response["wins"] + response["losses"]) * 100), 2)) + "%"
-            await message.channel.send(sumname + ": " + str(rank) + " | WR: " + str(wr))
 
     async def requestHighestMastery(self, message: discord.Message):
         sumname = ""
@@ -254,16 +233,6 @@ class MyClient(discord.Client):
 
     def getChampionsJSON(self):
         return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
-
-
-def truncate(f, n):
-    '''Truncates/pads a float f to n decimal places without rounding'''
-    s = '{}'.format(f)
-    if 'e' in s or 'E' in s:
-        return '{0:.{1}f}'.format(f, n)
-    i, p, d = s.partition('.')
-    return '.'.join([i, (d + '0' * n)[:n]])
-
 
 def intTryParse(value):
     try:
