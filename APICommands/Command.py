@@ -62,8 +62,11 @@ class Command:
 
     async def checkSumname(self, sumname, message: discord.Message):
         try:
-            var = self.api.summoner.by_name(self.region, sumname)["id"]
+            self.api.summoner.by_name(self.region, sumname)["id"]
             return True
         except requests.exceptions.HTTPError:
             await message.channel.send("No matching player found with name **" + sumname + "**")
             return False
+
+    def getEncryptedSummonerID(self, name):
+        return self.api.summoner.by_name(self.region, name)["id"]

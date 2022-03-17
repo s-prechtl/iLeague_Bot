@@ -75,18 +75,6 @@ class MyClient(discord.Client):
             if True:
                 return
 
-            # RANK
-            elif self.getContentFromMessageWithPrefixCommand(message, ["rank", "Rank", "RANK"]):
-                self.log("Summoner level", message)
-                await self.requestRank(message)
-
-                # HIGHEST MASTERY
-            elif self.getContentFromMessageWithPrefixCommand(message,
-                                                             ["highestmastery", "highestMastery", "HM", "hm", "Hm",
-                                                              "HighestMastery"]):
-                self.log("Highest mastery", message)
-                await self.requestHighestMastery(message)
-
             elif self.getContentFromMessageWithPrefixCommand(message, ["cm", "CM", "Championmastery",
                                                                        "championmastery"]):  # get Mastery from Champion
                 self.log("Summoner champion mastery", message)
@@ -97,51 +85,6 @@ class MyClient(discord.Client):
                 self.log("F2P rotation", message)
                 await self.requestFreeChampRot(message)
 
-    async def changePrefix(self, message: discord.Message):
-        try:
-            self.pref = message.content.split(" ")[1]
-            await message.channel.send("Prefix successfully changed to " + self.pref)
-            pickle.dump(self.pref, open("prefix.data", "wb"))
-        except:
-            await message.channel.send(
-                "Something went wrong while changing the prefix. To change it use " + self.pref + "prefix [new Prefix]")
-
-    async def requestHighestMastery(self, message: discord.Message):
-        sumname = ""
-        err = "Something went wrong.\nUsage: " + self.pref + "hm [count] [Summonername]"
-        firstIsInt = intTryParse(message.content.split(" ")[1])[1]
-
-        if len(message.content.split(" ")) > 2 and firstIsInt:  # If number is given
-            try:
-                sumname = self.getSummonerNameFromMessage(message, 2)
-            except Exception as e:
-                await message.channel.send(err)
-                print("Exception in Mastery " + str(e))
-            if sumname != "":
-                if not await self.checkSumname(sumname, message):
-                    return
-                try:
-                    listlen = int(message.content.split(" ")[1])
-                    output = self.getChampionMasteryList(sumname, listlen)
-                    for i in output:
-                        await message.channel.send(i)
-                except Exception as e:
-                    await message.channel.send(err)
-                    print("Exception in Mastery " + str(e))
-        elif not firstIsInt:  # no number given
-            try:
-                sumname = self.getSummonerNameFromMessage(message, 1)
-            except Exception as e:
-                await message.channel.send(err)
-                print("Exception in Mastery " + str(e))
-            if sumname != "":
-                try:
-                    listlen = 10
-                    output = self.getChampionMasteryList(sumname, listlen)
-                    for i in output:
-                        await message.channel.send(i)
-                except Exception as e:
-                    await message.channel.send(err)
 
     async def requestChampionMastery(self, message: discord.Message):
         err = "Something went wrong.\nUsage: " + self.pref + "cm [Championname] [Summonername]"
@@ -159,7 +102,7 @@ class MyClient(discord.Client):
                                                              self.api.summoner.by_name(self.region,
                                                                                        sumname)["id"])
 
-            championsJSON = self.getChampionsJSON()
+            championsJSON = getChampionsJSON()
             for i in response:
                 champname = championIdToName(i["championId"], championsJSON)
                 if champname == message.content.split(" ")[1]:
@@ -178,7 +121,7 @@ class MyClient(discord.Client):
         sumname = ""
         output = "Derzeitige F2P Champions"
         rot = self.api.champion.rotations(self.region)["freeChampionIds"]
-        championsJSON = self.getChampionsJSON()
+        championsJSON = getChampionsJSON()
         try:
             sumname = self.getSummonerNameFromMessage(message, 1)
         except Exception:
@@ -207,32 +150,8 @@ class MyClient(discord.Client):
         if len(output.split("\n")) <= 2:
             await message.channel.send("ㅤ\t- **Keine**")
 
-
-
-    def getChampionMasteryList(self, sumname, listlen):
-        output = ["Der Spieler " + sumname + " hat den höchsten Mastery auf diesen " + str(
-            listlen) + " Champions\n"]
-        count = 0
-        response = self.api.champion_mastery.by_summoner(self.region, self.getEncryptedSummonerID(sumname))[
-                   :listlen]
-        championsJSON = self.getChampionsJSON()
-        for i in response:
-            champname = championIdToName(i["championId"], championsJSON)
-            mpoints = i["championPoints"]
-            mastery = i["championLevel"]
-            out = "**" + champname + "**" + " Points: " + str(mpoints) + " Level: " + str(
-                mastery) + "\n"
-            if len(output[count]) + len(out) >= 2000:
-                output.append("")
-                count += 1
-            output[count] += out
-        return output
-
-    def getEncryptedSummonerID(self, name):
-        return self.api.summoner.by_name(self.region, name)["id"]
-
-    def getChampionsJSON(self):
-        return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
+def getChampionsJSON():
+    return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
 
 def intTryParse(value):
     try:
