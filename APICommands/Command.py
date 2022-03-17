@@ -1,9 +1,29 @@
+import json
 from abc import abstractmethod, ABCMeta
 from datetime import datetime
 
 import discord
 import requests
 import riotwatcher
+
+
+def championIdToName(id, championsText):
+    champions = json.loads(championsText)['data']
+
+    for j in dict(champions):
+        if id == int(champions[j]["key"]):
+            return j
+
+
+def getChampionsJSON():
+    return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
+
+
+def intTryParse(value):
+    try:
+        return int(value), True
+    except ValueError:
+        return value, False
 
 
 def getSummonerNameFromMessage(message: discord.Message, argumentstart=1):

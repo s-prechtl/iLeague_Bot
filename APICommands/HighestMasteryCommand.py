@@ -4,7 +4,7 @@ import discord
 import riotwatcher
 
 import APICommands.Command
-from iLeague import intTryParse, championIdToName, getChampionsJSON
+from APICommands.Command import intTryParse, championIdToName, getChampionsJSON, getSummonerNameFromMessage
 
 
 class HighestMastery(APICommands.Command.Command, ABC):
@@ -20,7 +20,7 @@ class HighestMastery(APICommands.Command.Command, ABC):
         firstIsInt = intTryParse(message.content.split(" ")[1])[1]
 
         try:
-            sumname = APICommands.Command.getSummonerNameFromMessage(message, 2)
+            sumname = getSummonerNameFromMessage(message, 2)
         except:
             await self.usage(message)
         if sumname != "":

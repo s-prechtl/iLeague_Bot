@@ -4,6 +4,7 @@ import discord
 import riotwatcher
 
 import APICommands.Command
+from APICommands.Command import getSummonerNameFromMessage
 
 
 class SummonerLevel(APICommands.Command.Command, ABC):
@@ -17,7 +18,7 @@ class SummonerLevel(APICommands.Command.Command, ABC):
     async def execute(self, message: discord.Message):
         sumname = ""
         try:
-            sumname = APICommands.Command.getSummonerNameFromMessage(message)
+            sumname = getSummonerNameFromMessage(message)
         except:
             await self.usage(message)
         if sumname != "":

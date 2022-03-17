@@ -9,12 +9,7 @@ from riotwatcher import LolWatcher
 from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand, SummonerRankCommand
 
 
-def championIdToName(id, championsText):
-    champions = json.loads(championsText)['data']
 
-    for j in dict(champions):
-        if id == int(champions[j]["key"]):
-            return j
 
 
 class MyClient(discord.Client):
@@ -75,46 +70,10 @@ class MyClient(discord.Client):
             if True:
                 return
 
-            elif self.getContentFromMessageWithPrefixCommand(message, ["cm", "CM", "Championmastery",
-                                                                       "championmastery"]):  # get Mastery from Champion
-                self.log("Summoner champion mastery", message)
-                await self.requestChampionMastery(message)
-
             # FREE CHAMPS
             elif self.getContentFromMessageWithPrefixCommand(message, ["f2p", "rotation", "F2P", "ROTATION"]):
                 self.log("F2P rotation", message)
                 await self.requestFreeChampRot(message)
-
-
-    async def requestChampionMastery(self, message: discord.Message):
-        err = "Something went wrong.\nUsage: " + self.pref + "cm [Championname] [Summonername]"
-        sumname = ""
-        try:
-            sumname = self.getSummonerNameFromMessage(message, 2)
-        except Exception as e:
-            await message.channel.send(err)
-
-        if sumname != "":
-            if not await self.checkSumname(sumname, message):
-                return
-
-            response = self.api.champion_mastery.by_summoner(self.region,
-                                                             self.api.summoner.by_name(self.region,
-                                                                                       sumname)["id"])
-
-            championsJSON = getChampionsJSON()
-            for i in response:
-                champname = championIdToName(i["championId"], championsJSON)
-                if champname == message.content.split(" ")[1]:
-                    mpoints = i["championPoints"]
-                    mastery = i["championLevel"]
-                    out = "**" + sumname + "** --> **" + champname + "**" + " Points: " + str(
-                        mpoints) + " Level: " + str(
-                        mastery) + "\n"
-
-                    await message.channel.send(out)
-                    return
-            await message.channel.send("No matching champion was found.")
 
     async def requestFreeChampRot(self, message: discord.Message):
         err = "Something went wrong.\nUsage: " + self.pref + "f2p [Summonername]"
@@ -150,14 +109,7 @@ class MyClient(discord.Client):
         if len(output.split("\n")) <= 2:
             await message.channel.send("ㅤ\t- **Keine**")
 
-def getChampionsJSON():
-    return requests.get("http://ddragon.leagueoflegends.com/cdn/11.19.1/data/en_US/champion.json").text
 
-def intTryParse(value):
-    try:
-        return int(value), True
-    except ValueError:
-        return value, False
 
 
 if __name__ == '__main__':
