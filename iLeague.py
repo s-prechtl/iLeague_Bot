@@ -9,9 +9,6 @@ from riotwatcher import LolWatcher
 from APICommands import ChampionMasteryCommand, HighestMasteryCommand, SummonerLevelCommand, PrefixCommand, SummonerRankCommand
 
 
-
-
-
 class MyClient(discord.Client):
     api: LolWatcher
     region: str
@@ -58,56 +55,12 @@ class MyClient(discord.Client):
                     command.log(message)
                     await command.execute(message)
 
-
-
             # HUBA
             if message.content == self.pref + "huba":
                 self.log("Huawa", message)
                 await message.channel.send(
                     "Julian Huber (17) ist ein Kinderschänder, welcher in Wahrheit schwul ist und seine sexuelle "
                     "Orientierung hinter einer Beziehung mit einem weiblichen Kind versteckt.")
-
-            if True:
-                return
-
-            # FREE CHAMPS
-            elif self.getContentFromMessageWithPrefixCommand(message, ["f2p", "rotation", "F2P", "ROTATION"]):
-                self.log("F2P rotation", message)
-                await self.requestFreeChampRot(message)
-
-    async def requestFreeChampRot(self, message: discord.Message):
-        err = "Something went wrong.\nUsage: " + self.pref + "f2p [Summonername]"
-        sumname = ""
-        output = "Derzeitige F2P Champions"
-        rot = self.api.champion.rotations(self.region)["freeChampionIds"]
-        championsJSON = getChampionsJSON()
-        try:
-            sumname = self.getSummonerNameFromMessage(message, 1)
-        except Exception:
-            pass
-
-        if sumname != "":
-            if not await self.checkSumname(sumname, message):
-                return
-            output += " auf denen **" + sumname + "** noch keine Punkte hast: \n"
-            response = self.api.champion_mastery.by_summoner(self.region,
-                                                             self.api.summoner.by_name(self.region,
-                                                                                       sumname)["id"])
-            allIds = []
-            for i in response:
-                allIds.append(i["championId"])
-
-            for i in rot:
-                if not i in allIds:
-                    output += ("ㅤ\t- **" + championIdToName(i, championsJSON) + "**\n")
-        else:
-            output += ":\n"
-            for i in rot:
-                output += ("ㅤ\t- **" + championIdToName(i, championsJSON) + "**\n")
-
-        await message.channel.send(output)
-        if len(output.split("\n")) <= 2:
-            await message.channel.send("ㅤ\t- **Keine**")
 
 
 
