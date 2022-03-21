@@ -21,7 +21,7 @@ class HighestMastery(APICommands.Command.Command, ABC):
         firstIsInt = intTryParse(message.content.split(" ")[1])[1]
 
         try:
-            sumname = getSummonerNameFromMessage(message, 2)
+            sumname = getSummonerNameFromMessage(message, 2 if firstIsInt else 1)
         except:
             await self.usage(message)
         if sumname != "":
