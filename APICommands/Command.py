@@ -73,12 +73,12 @@ class Command:
         return False
 
     def log(self, message: discord.Message):
-        logMSG = (self.commandName + " request sent:\n\t-in: " + str(message.channel.name) + "\n\t- at: " + str(
-            datetime.now())[:-7] + "\n\t- by: " + str(message.author) + "\n\t- content: '" + str(
+        LogMSG = ("## " + self.commandName + " request sent:\n* in: " + str(message.channel.name) + "\n* at: " + str(
+            datetime.now())[:-7] + "\n* by: " + str(message.author) + "\n* content: '" + str(
             message.content) + "'\n")
-        print(logMSG)
-        with open("requests.log", "a") as f:
-            f.write(logMSG)
+        print(LogMSG)
+        with open("requests.md", "a") as f:
+            f.write(LogMSG)
 
     async def checkSumname(self, sumname, message: discord.Message):
         try:

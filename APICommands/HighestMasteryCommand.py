@@ -8,6 +8,7 @@ from APICommands.Command import intTryParse, championIdToName, getChampionsJSON,
 
 
 class HighestMastery(APICommands.Command.Command, ABC):
+    commandName = "Highest mastery"
     keywords = ["highestmastery", "highestMastery", "HM", "hm", "Hm", "HighestMastery"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords: list):

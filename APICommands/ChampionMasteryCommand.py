@@ -8,6 +8,7 @@ from APICommands.Command import getSummonerNameFromMessage, getChampionsJSON, ch
 
 
 class ChampionMastery(APICommands.Command.Command, ABC):
+    commandName = "Champion mastery"
     keywords = ["cm", "CM", "Championmastery", "championmastery"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords: list):

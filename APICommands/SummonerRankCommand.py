@@ -17,6 +17,7 @@ def truncate(f, n):
 
 
 class SummonerRank(APICommands.Command.Command, ABC):
+    commandName = "Summoner rank"
     keywords = ["rank", "Rank", "RANK"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords=None):

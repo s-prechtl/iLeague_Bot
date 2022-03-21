@@ -7,6 +7,7 @@ import APICommands.Command
 
 
 class Free2Play(APICommands.Command.Command, ABC):
+    commandName = "Free 2 Play"
     keywords = ["f2p", "rotation", "F2P", "ROTATION"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords=None):

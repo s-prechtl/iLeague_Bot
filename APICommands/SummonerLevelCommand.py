@@ -8,6 +8,7 @@ from APICommands.Command import getSummonerNameFromMessage
 
 
 class SummonerLevel(APICommands.Command.Command, ABC):
+    commandName = "Summoner level"
     keywords = ["level", "Level", "lvl"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords: list):

@@ -8,6 +8,7 @@ import APICommands.Command
 
 
 class Prefix(APICommands.Command.Command, ABC):
+    commandName = "Prefix"
     keywords = ["prefix"]
 
     def __init__(self, pref, api: riotwatcher.LolWatcher, region: str, additionalKeywords=None):
